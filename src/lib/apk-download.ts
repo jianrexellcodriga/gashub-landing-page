@@ -14,7 +14,7 @@
 export const APK_DOWNLOAD_PATH = '/api/download-apk';
 
 /** File name the browser saves the APK as. Keep it equal to the object name in the bucket. */
-export const APK_FILE_NAME = 'gashub.apk';
+export const APK_FILE_NAME = 'app-release.apk';
 
 /**
  * Supabase serves public files through a CDN keyed by the full URL, so re-uploading
