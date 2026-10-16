@@ -1,55 +1,114 @@
-'use client';
-
 import React from 'react';
-import * as HeroIcons from '@heroicons/react/24/outline';
-import * as HeroIconsSolid from '@heroicons/react/24/solid';
-import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
+import {
+  AdjustmentsHorizontalIcon,
+  ArrowDownTrayIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  ArrowTrendingUpIcon,
+  Bars3Icon,
+  CameraIcon,
+  ChartBarIcon,
+  ChatBubbleLeftRightIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronUpIcon,
+  DocumentMagnifyingGlassIcon,
+  HomeIcon,
+  MagnifyingGlassIcon,
+  MapIcon,
+  PaperAirplaneIcon,
+  PlayCircleIcon,
+  QuestionMarkCircleIcon,
+  ShieldCheckIcon,
+  SparklesIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
+import {
+  ArrowDownTrayIcon as ArrowDownTraySolidIcon,
+  ChatBubbleLeftRightIcon as ChatBubbleLeftRightSolidIcon,
+  ChevronDownIcon as ChevronDownSolidIcon,
+  ChevronUpIcon as ChevronUpSolidIcon,
+  PaperAirplaneIcon as PaperAirplaneSolidIcon,
+  XMarkIcon as XMarkSolidIcon,
+} from '@heroicons/react/24/solid';
 
 type IconVariant = 'outline' | 'solid';
 
-interface IconProps {
-    name: string; // Changed to string to accept dynamic values
-    variant?: IconVariant;
-    size?: number;
-    className?: string;
-    onClick?: () => void;
-    disabled?: boolean;
-    [key: string]: any;
+interface IconProps extends Omit<React.SVGProps<SVGSVGElement>, 'onClick'> {
+  name: string;
+  variant?: IconVariant;
+  size?: number;
+  className?: string;
+  onClick?: React.MouseEventHandler<SVGSVGElement>;
+  disabled?: boolean;
 }
+
+const outlineIcons: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
+  AdjustmentsHorizontalIcon,
+  ArrowDownTrayIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  ArrowTrendingUpIcon,
+  Bars3Icon,
+  CameraIcon,
+  ChartBarIcon,
+  ChatBubbleLeftRightIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronUpIcon,
+  DocumentMagnifyingGlassIcon,
+  HomeIcon,
+  MagnifyingGlassIcon,
+  MapIcon,
+  PaperAirplaneIcon,
+  PlayCircleIcon,
+  ShieldCheckIcon,
+  SparklesIcon,
+  XMarkIcon,
+};
+
+const solidIcons: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
+  ArrowDownTrayIcon: ArrowDownTraySolidIcon,
+  ChatBubbleLeftRightIcon: ChatBubbleLeftRightSolidIcon,
+  ChevronDownIcon: ChevronDownSolidIcon,
+  ChevronUpIcon: ChevronUpSolidIcon,
+  PaperAirplaneIcon: PaperAirplaneSolidIcon,
+  XMarkIcon: XMarkSolidIcon,
+};
 
 function Icon({
-    name,
-    variant = 'outline',
-    size = 24,
-    className = '',
-    onClick,
-    disabled = false,
-    ...props
+  name,
+  variant = 'outline',
+  size = 24,
+  className = '',
+  onClick,
+  disabled = false,
+  ...props
 }: IconProps) {
-    const iconSet = variant === 'solid' ? HeroIconsSolid : HeroIcons;
-    const IconComponent = iconSet[name as keyof typeof iconSet] as React.ComponentType<any>;
+  const IconComponent =
+    (variant === 'solid' ? solidIcons[name] : outlineIcons[name]) ?? outlineIcons[name];
 
-    if (!IconComponent) {
-        return (
-            <QuestionMarkCircleIcon
-                width={size}
-                height={size}
-                className={`text-gray-400 ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
-                onClick={disabled ? undefined : onClick}
-                {...props}
-            />
-        );
-    }
-
+  if (!IconComponent) {
     return (
-        <IconComponent
-            width={size}
-            height={size}
-            className={`${disabled ? 'opacity-50 cursor-not-allowed' : onClick ? 'cursor-pointer hover:opacity-80' : ''} ${className}`}
-            onClick={disabled ? undefined : onClick}
-            {...props}
-        />
+      <QuestionMarkCircleIcon
+        width={size}
+        height={size}
+        className={`text-gray-400 ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+        onClick={disabled ? undefined : onClick}
+        {...props}
+      />
     );
+  }
+
+  return (
+    <IconComponent
+      width={size}
+      height={size}
+      className={`${disabled ? 'opacity-50 cursor-not-allowed' : onClick ? 'cursor-pointer hover:opacity-80' : ''} ${className}`}
+      onClick={disabled ? undefined : onClick}
+      {...props}
+    />
+  );
 }
 
-export default Icon; 
+export default Icon;

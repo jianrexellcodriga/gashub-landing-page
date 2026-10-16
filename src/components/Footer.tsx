@@ -11,7 +11,7 @@ export default function Footer() {
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <AppLogo size={24} />
-              <span className="font-bold text-base text-foreground">GasHub</span>
+              <span className="font-bold text-base text-primary">GasHub</span>
             </div>
             <p className="text-caption text-muted-foreground">
               © 2026 GasHub Sjp2cd Capstone System. All rights reserved.

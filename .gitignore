@@ -1,6 +1,5 @@
 # Node modules
 node_modules/
-package-lock.json
 
 # Next.js build output
 .next/
@@ -32,6 +31,10 @@ jest-test-results.json
 # Optional: if using IDEs
 .vscode/
 .idea/
+
+# env files (can opt-in for committing if needed)
+.env*
+
 
 # Optional: if using TurboRepo or monorepo
 turbo/

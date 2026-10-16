@@ -2,15 +2,20 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Icon from '@/components/ui/AppIcon';
+import GasBotMessage from '@/components/GasBotMessage';
 
 type Message = {
   role: 'user' | 'assistant';
   content: string;
+  followUps?: string[];
+  /** Kept in the conversation history sent to the API, but not drawn as a bubble. */
+  hidden?: boolean;
 };
 
 const INITIAL_MESSAGE: Message = {
   role: 'assistant',
-  content: "Hi! I'm GasBot 👋 I'm here to help you with GasHub — your fuel price intelligence app for Davao City. Ask me anything or pick a question below!",
+  content:
+    "Hi! I'm GasBot 👋 I'm here to help you with GasHub — your fuel price intelligence app for Davao City. Ask me anything or pick a question below!",
 };
 
 const FAQ_PROMPTS = [
@@ -22,17 +27,31 @@ const FAQ_PROMPTS = [
   'What map features does the app use?',
 ];
 
+const ROBOT_ASSISTANT_ICON = '/assets/icons/robot-assistant.svg';
+const STREAM_DELAY_MS = 30;
+// Long answers (station cards) are revealed in bigger chunks so any reply finishes streaming in ~2s.
+const MAX_STREAM_TICKS = 70;
+
+const INITIAL_FOLLOW_UPS = [
+  'How does GasHub predict fuel prices?',
+  'How do I contribute a price update?',
+  'Where can I download GasHub?',
+];
+
 export default function GasBot() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
+  const [messages, setMessages] = useState<Message[]>([
+    { ...INITIAL_MESSAGE, followUps: INITIAL_FOLLOW_UPS },
+  ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const streamTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    messagesEndRef.current?.scrollIntoView({ behavior: isLoading ? 'auto' : 'smooth' });
+  }, [messages, isLoading]);
 
   useEffect(() => {
     if (isOpen) {
@@ -40,55 +59,128 @@ export default function GasBot() {
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    return () => {
+      if (streamTimeoutRef.current) clearTimeout(streamTimeoutRef.current);
+    };
+  }, []);
+
   const [showFAQs, setShowFAQs] = useState(false);
 
-  const sendToAPI = async (history: Message[]) => {
+  const streamAssistantMessage = (content: string, followUps: string[]) =>
+    new Promise<void>((resolve) => {
+      const tokens = content.match(/\S+\s*/g) ?? [content];
+      const tokensPerTick = Math.max(1, Math.ceil(tokens.length / MAX_STREAM_TICKS));
+      const assistantMessage: Message = { role: 'assistant', content: '' };
+      let currentToken = 0;
+
+      setMessages((prev) => [
+        ...prev.filter((m) => m.content !== '__loading__'),
+        assistantMessage,
+      ]);
+
+      const typeNextToken = () => {
+        currentToken = Math.min(tokens.length, currentToken + tokensPerTick);
+        const streamedContent = tokens.slice(0, currentToken).join('');
+
+        setMessages((prev) => {
+          const next = [...prev];
+          const lastMessage = next[next.length - 1];
+
+          if (lastMessage?.role === 'assistant') {
+            next[next.length - 1] = {
+              ...lastMessage,
+              content: streamedContent,
+              followUps: currentToken === tokens.length ? followUps : undefined,
+            };
+          }
+
+          return next;
+        });
+
+        if (currentToken < tokens.length) {
+          streamTimeoutRef.current = setTimeout(typeNextToken, STREAM_DELAY_MS);
+          return;
+        }
+
+        streamTimeoutRef.current = null;
+        resolve();
+      };
+
+      streamTimeoutRef.current = setTimeout(typeNextToken, STREAM_DELAY_MS);
+    });
+
+  const hideFollowUps = (items: Message[]) =>
+    items.map((message) =>
+      message.followUps ? { ...message, followUps: undefined } : message
+    );
+
+  const sendToAPI = async (history: Message[], backgroundPrompt?: string) => {
     setIsLoading(true);
+    const apiMessages = backgroundPrompt
+      ? [...history, { role: 'user', content: backgroundPrompt }]
+      : history;
+
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history }),
+        body: JSON.stringify({ messages: apiMessages }),
       });
       if (!res.ok) throw new Error('API error');
       const data: Message = await res.json();
-      setMessages((prev) => {
-        const filtered = prev.filter((m) => m.content !== '__loading__');
-        return [...filtered, data];
-      });
+      await streamAssistantMessage(data.content, data.followUps ?? []);
     } catch {
-      setMessages((prev) => {
-        const filtered = prev.filter((m) => m.content !== '__loading__');
-        return [
-          ...filtered,
-          { role: 'assistant', content: 'Sorry, I had trouble connecting. Please try again.' },
-        ];
-      });
+      await streamAssistantMessage('Sorry, I had trouble connecting. Please try again.', [
+        'Do you want me to try that same question again?',
+        'Would you like to ask a shorter version?',
+        'Are you asking about prices, maps, or downloads?',
+      ]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleFAQClick = (text: string) => {
+  const submitUserPrompt = (text: string) => {
     if (isLoading) return;
     const userMessage: Message = { role: 'user', content: text };
     const loadingMessage: Message = { role: 'assistant', content: '__loading__' };
-    const updated = [...messages, userMessage, loadingMessage];
+    const history = [
+      ...hideFollowUps(messages.filter((m) => m.content !== '__loading__')),
+      userMessage,
+    ];
+    const updated = [...history, loadingMessage];
     setMessages(updated);
     setShowFAQs(false);
-    sendToAPI([...messages, userMessage]);
+    sendToAPI(history);
+  };
+
+  const submitFollowUpPrompt = (text: string) => {
+    if (isLoading) return;
+    const loadingMessage: Message = { role: 'assistant', content: '__loading__' };
+    // Keep the tapped suggestion in the stored history (hidden from the UI) so the model always
+    // sees a proper user -> assistant alternation and keeps context on the next turn.
+    const followUpMessage: Message = { role: 'user', content: text, hidden: true };
+    const history = [
+      ...hideFollowUps(messages.filter((m) => m.content !== '__loading__')),
+      followUpMessage,
+    ];
+
+    setIsLoading(true);
+    setShowFAQs(false);
+    setMessages([...history, loadingMessage]);
+    sendToAPI(history);
+  };
+
+  const handleFAQClick = (text: string) => {
+    submitUserPrompt(text);
   };
 
   const handleSend = () => {
     const trimmed = input.trim();
-    if (!trimmed || isLoading) return;
-    const userMessage: Message = { role: 'user', content: trimmed };
-    const loadingMessage: Message = { role: 'assistant', content: '__loading__' };
-    const updated = [...messages, userMessage, loadingMessage];
-    setMessages(updated);
+    if (!trimmed) return;
+    submitUserPrompt(trimmed);
     setInput('');
-    setShowFAQs(false);
-    sendToAPI([...messages, userMessage]);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -100,15 +192,20 @@ export default function GasBot() {
       {/* Chat Window */}
       {isOpen && (
         <div
-          className="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-32px)] sm:w-96 max-h-[70vh] flex flex-col rounded-2xl chatbot-window overflow-hidden"
+          className="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-32px)] sm:w-[26rem] max-h-[78vh] flex flex-col rounded-2xl chatbot-window overflow-hidden"
           role="dialog"
           aria-label="GasBot chat window"
         >
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 bg-primary text-primary-foreground">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                <Icon name="ChatBubbleLeftRightIcon" size={16} variant="solid" className="text-primary-foreground" />
+              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center overflow-hidden">
+                <img
+                  src={ROBOT_ASSISTANT_ICON}
+                  alt=""
+                  className="h-7 w-7 object-contain"
+                  aria-hidden="true"
+                />
               </div>
               <div>
                 <p className="font-semibold text-sm">GasBot</p>
@@ -126,31 +223,84 @@ export default function GasBot() {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-3 min-h-0 bg-white/95">
-            {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                {msg.content === '__loading__' ? (
-                  <div className="bg-muted rounded-2xl rounded-bl-sm px-4 py-2.5 max-w-[80%]">
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '300ms' }} />
-                      <span className="text-caption text-muted-foreground ml-1">GasBot is thinking...</span>
+            {messages.map((msg, i) => {
+              const isStreamingMessage =
+                isLoading &&
+                msg.role === 'assistant' &&
+                msg.content !== '__loading__' &&
+                !msg.followUps &&
+                i === messages.length - 1;
+
+              if (msg.hidden) return null;
+
+              return (
+                <div
+                  key={i}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'items-end justify-start gap-2'}`}
+                >
+                  {msg.role === 'assistant' && (
+                    <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
+                      <img
+                        src={ROBOT_ASSISTANT_ICON}
+                        alt=""
+                        className="h-6 w-6 object-contain"
+                        aria-hidden="true"
+                      />
                     </div>
-                  </div>
-                ) : (
-                  <div
-                    className={`rounded-2xl px-4 py-2.5 max-w-[80%] text-body-sm leading-relaxed ${
-                      msg.role === 'user' ?'bg-primary text-primary-foreground rounded-br-sm' :'bg-muted text-foreground rounded-bl-sm'
-                    }`}
-                  >
-                    {msg.content}
-                  </div>
-                )}
-              </div>
-            ))}
+                  )}
+                  {msg.content === '__loading__' ? (
+                    <div className="bg-muted rounded-2xl rounded-bl-sm px-4 py-2.5 max-w-[80%]">
+                      <div className="flex items-center gap-1.5">
+                        <div
+                          className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce"
+                          style={{ animationDelay: '0ms' }}
+                        />
+                        <div
+                          className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce"
+                          style={{ animationDelay: '150ms' }}
+                        />
+                        <div
+                          className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce"
+                          style={{ animationDelay: '300ms' }}
+                        />
+                        <span className="text-caption text-muted-foreground ml-1">
+                          GasBot is thinking
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      className={`min-w-0 rounded-2xl px-4 py-2.5 text-body-sm leading-relaxed ${
+                        msg.role === 'user'
+                          ? 'max-w-[80%] bg-primary text-primary-foreground rounded-br-sm'
+                          : 'max-w-[calc(100%-2.25rem)] bg-muted text-foreground rounded-bl-sm'
+                      }`}
+                    >
+                      <GasBotMessage
+                        content={msg.content}
+                        role={msg.role}
+                        showCursor={isStreamingMessage}
+                      />
+                      {msg.role === 'assistant' && msg.followUps && msg.followUps.length > 0 && (
+                        <div className="mt-3 flex flex-col gap-1.5 border-t border-border/70 pt-2">
+                          {msg.followUps.map((prompt) => (
+                            <button
+                              key={prompt}
+                              type="button"
+                              onClick={() => submitFollowUpPrompt(prompt)}
+                              disabled={isLoading}
+                              className="w-full rounded-md border border-border bg-white px-3 py-1.5 text-left text-caption font-medium text-foreground transition-colors hover:border-primary hover:bg-primary/5 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                            >
+                              {prompt}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
             <div ref={messagesEndRef} />
           </div>
 
@@ -184,7 +334,11 @@ export default function GasBot() {
               className="w-10 h-10 rounded-md bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary-container transition-transform active:scale-95 flex-shrink-0"
               aria-label={showFAQs ? 'Hide FAQs' : 'Show FAQs'}
             >
-              <Icon name={showFAQs ? 'ChevronDownIcon' : 'ChevronUpIcon'} size={20} variant="solid" />
+              <Icon
+                name={showFAQs ? 'ChevronDownIcon' : 'ChevronUpIcon'}
+                size={20}
+                variant="solid"
+              />
             </button>
 
             <input
@@ -205,7 +359,12 @@ export default function GasBot() {
               className="w-10 h-10 rounded-md bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary-container transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-primary flex-shrink-0"
               aria-label="Send message"
             >
-              <Icon name="PaperAirplaneIcon" size={16} variant="solid" className="text-primary-foreground" />
+              <Icon
+                name="PaperAirplaneIcon"
+                size={16}
+                variant="solid"
+                className="text-primary-foreground"
+              />
             </button>
           </div>
         </div>
@@ -220,7 +379,12 @@ export default function GasBot() {
         {isOpen ? (
           <Icon name="XMarkIcon" size={22} variant="solid" className="text-primary-foreground" />
         ) : (
-          <Icon name="ChatBubbleLeftRightIcon" size={22} variant="solid" className="text-primary-foreground" />
+          <img
+            src={ROBOT_ASSISTANT_ICON}
+            alt=""
+            className="h-9 w-9 object-contain"
+            aria-hidden="true"
+          />
         )}
       </button>
     </>

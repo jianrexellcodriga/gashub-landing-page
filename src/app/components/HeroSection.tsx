@@ -1,17 +1,9 @@
-'use client';
-
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
+import Link from 'next/link';
 import Icon from '@/components/ui/AppIcon';
+import { APK_DOWNLOAD_PATH } from '@/lib/apk-download';
 
 export default function HeroSection() {
-  const heroRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = heroRef?.current;
-    if (!el) return;
-    el?.classList?.add('revealed');
-  }, []);
-
   return (
     <section
       className="pt-16 min-h-[calc(100vh-0px)] flex items-center"
@@ -40,20 +32,27 @@ export default function HeroSection() {
 
             {/* CTAs */}
             <div id="download" className="flex flex-wrap items-center gap-3 pt-2">
+              {/* Plain <a> on purpose: next/link would try to prefetch the API route */}
               <a
-                href="#"
+                href={APK_DOWNLOAD_PATH}
                 className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-5 py-3 rounded-md font-semibold text-body-sm hover:bg-primary-container transition-colors elevation-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[44px]"
               >
-                <Icon name="ArrowDownTrayIcon" size={16} variant="solid" className="text-primary-foreground" />
+                <Icon
+                  name="ArrowDownTrayIcon"
+                  size={16}
+                  variant="solid"
+                  className="text-primary-foreground"
+                />
                 Download App
               </a>
-              <a
+
+              <Link
                 href="#"
-                className="inline-flex items-center gap-2 border border-foreground/20 text-foreground px-5 py-3 rounded-md font-semibold text-body-sm hover:bg-foreground/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[44px]"
+                className="inline-flex items-center gap-2 border border-foreground/20 text-foreground px-5 py-3 rounded-md font-semibold text-body-sm hover:bg-white/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[44px]"
               >
                 <Icon name="PlayCircleIcon" size={16} className="text-foreground" />
                 Watch Demo
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -89,24 +88,71 @@ export default function HeroSection() {
                   </div>
 
                   {/* Map Area */}
-                  <div className="mx-3 rounded-xl overflow-hidden relative" style={{ height: '320px', background: 'linear-gradient(135deg, #1a3d2b 0%, #0d2b1a 50%, #1a4a2a 100%)' }}>
+                  <div
+                    className="mx-3 rounded-xl overflow-hidden relative"
+                    style={{
+                      height: '320px',
+                      background: 'linear-gradient(135deg, #1a3d2b 0%, #0d2b1a 50%, #1a4a2a 100%)',
+                    }}
+                  >
                     {/* Grid lines */}
-                    <svg className="absolute inset-0 w-full h-full opacity-20" xmlns="http://www.w3.org/2000/svg">
+                    <svg
+                      className="absolute inset-0 w-full h-full opacity-20"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
                       <defs>
                         <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
-                          <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#4ade80" strokeWidth="0.5" />
+                          <path
+                            d="M 30 0 L 0 0 0 30"
+                            fill="none"
+                            stroke="#4ade80"
+                            strokeWidth="0.5"
+                          />
                         </pattern>
                       </defs>
                       <rect width="100%" height="100%" fill="url(#grid)" />
                     </svg>
 
                     {/* Roads */}
-                    <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M 30 60 Q 100 80 180 50 Q 240 30 280 70" fill="none" stroke="#4ade80" strokeWidth="2" opacity="0.4" />
-                      <path d="M 0 120 Q 80 110 160 130 Q 220 145 280 120" fill="none" stroke="#4ade80" strokeWidth="1.5" opacity="0.3" />
-                      <path d="M 60 0 Q 70 80 80 160 Q 85 220 90 300" fill="none" stroke="#4ade80" strokeWidth="1.5" opacity="0.3" />
-                      <path d="M 160 0 Q 155 80 150 160 Q 148 220 145 300" fill="none" stroke="#4ade80" strokeWidth="1.5" opacity="0.3" />
-                      <path d="M 0 200 Q 100 190 200 210 Q 250 215 280 200" fill="none" stroke="#4ade80" strokeWidth="1" opacity="0.25" />
+                    <svg
+                      className="absolute inset-0 w-full h-full"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M 30 60 Q 100 80 180 50 Q 240 30 280 70"
+                        fill="none"
+                        stroke="#4ade80"
+                        strokeWidth="2"
+                        opacity="0.4"
+                      />
+                      <path
+                        d="M 0 120 Q 80 110 160 130 Q 220 145 280 120"
+                        fill="none"
+                        stroke="#4ade80"
+                        strokeWidth="1.5"
+                        opacity="0.3"
+                      />
+                      <path
+                        d="M 60 0 Q 70 80 80 160 Q 85 220 90 300"
+                        fill="none"
+                        stroke="#4ade80"
+                        strokeWidth="1.5"
+                        opacity="0.3"
+                      />
+                      <path
+                        d="M 160 0 Q 155 80 150 160 Q 148 220 145 300"
+                        fill="none"
+                        stroke="#4ade80"
+                        strokeWidth="1.5"
+                        opacity="0.3"
+                      />
+                      <path
+                        d="M 0 200 Q 100 190 200 210 Q 250 215 280 200"
+                        fill="none"
+                        stroke="#4ade80"
+                        strokeWidth="1"
+                        opacity="0.25"
+                      />
                     </svg>
 
                     {/* Map pins */}
@@ -155,8 +201,8 @@ export default function HeroSection() {
               </div>
 
               {/* Floating update badge */}
-              <div className="absolute -left-6 bottom-24 bg-white rounded-xl px-3 py-2 elevation-2 border border-border flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+              <div className="absolute -left-7 bottom-20 bg-white rounded-xl px-3 py-2 elevation-2 border border-border flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
                   <Icon name="ArrowTrendingUpIcon" size={12} className="text-primary" />
                 </div>
                 <div>

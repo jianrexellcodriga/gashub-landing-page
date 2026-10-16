@@ -47,9 +47,12 @@ export default function AIIntelligenceSection() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Header */}
         <div className="text-center mb-12 section-reveal">
-          <h2 className="text-display-lg text-foreground mb-3">Precision-Engineered Intelligence</h2>
+          <h2 className="text-display-lg text-foreground mb-3">
+            Precision-Engineered Intelligence
+          </h2>
           <p className="text-body-md text-muted-foreground max-w-xl mx-auto">
-            How our proprietary AI ecosystem transforms raw data into actionable savings for your daily commute.
+            How our proprietary AI ecosystem transforms raw data into actionable savings for your
+            daily commute.
           </p>
         </div>
 
@@ -62,8 +65,9 @@ export default function AIIntelligenceSection() {
             </div>
             <h3 className="text-headline-md text-foreground mb-3">EasyOCR Pipeline</h3>
             <p className="text-body-sm text-muted-foreground leading-relaxed mb-8 flex-1">
-              Our edge-computing vision model automatically extracts real-time pricing from gas station
-              boards via crowdsourced images, ensuring 99.8% accuracy without manual entry errors.
+              Our edge-computing vision model automatically extracts real-time pricing from gas
+              station boards via crowdsourced images, ensuring 99.8% accuracy without manual entry
+              errors.
             </p>
 
             {/* Pipeline Diagram */}
@@ -78,7 +82,11 @@ export default function AIIntelligenceSection() {
                       <span className="text-caption font-medium text-foreground">{step}</span>
                     </div>
                     {i < 2 && (
-                      <Icon name="ArrowRightIcon" size={12} className="text-muted-foreground flex-shrink-0" />
+                      <Icon
+                        name="ArrowRightIcon"
+                        size={12}
+                        className="text-muted-foreground flex-shrink-0"
+                      />
                     )}
                   </React.Fragment>
                 ))}
@@ -93,9 +101,9 @@ export default function AIIntelligenceSection() {
             </div>
             <h3 className="text-headline-md text-foreground mb-3">Prophet Forecasting</h3>
             <p className="text-body-sm text-muted-foreground leading-relaxed mb-8 flex-1">
-              Utilizing additive models where non-linear trends are fit with yearly, weekly, and daily
-              seasonality, plus holiday effects. We predict the next 7 days of price shifts with
-              professional rigor.
+              Utilizing additive models where non-linear trends are fit with yearly, weekly, and
+              daily seasonality, plus holiday effects. We predict the next 7 days of price shifts
+              with professional rigor.
             </p>
 
             {/* Bar Chart */}

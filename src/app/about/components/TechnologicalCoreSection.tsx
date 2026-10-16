@@ -1,6 +1,4 @@
-'use client';
-
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import Icon from '@/components/ui/AppIcon';
 
 const TECH_CARDS = [
@@ -22,32 +20,15 @@ const TECH_CARDS = [
 ];
 
 export default function TechnologicalCoreSection() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.querySelectorAll('.section-reveal').forEach((el, i) => {
-              setTimeout(() => el.classList.add('revealed'), i * 120);
-            });
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-    if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <section ref={sectionRef} className="py-16 lg:py-24 bg-white">
+    <section className="py-16 lg:py-24 bg-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Header */}
-        <div className="text-center mb-12 section-reveal">
+        <div className="text-center mb-12 section-reveal revealed">
           <h2 className="text-display-lg text-foreground mb-2">Technological Core</h2>
-          <p className="text-body-md text-muted-foreground">The intelligence engine powering OhMyGas</p>
+          <p className="text-body-md text-muted-foreground">
+            The intelligence engine powering OhMyGas
+          </p>
         </div>
 
         {/* 3-column grid */}
@@ -55,7 +36,7 @@ export default function TechnologicalCoreSection() {
           {TECH_CARDS.map((card, i) => (
             <div
               key={card.title}
-              className="section-reveal bg-white border border-border rounded-xl p-6 hover:elevation-1 hover:border-primary/20 transition-all duration-300 group"
+              className="section-reveal revealed bg-white border border-border rounded-xl p-6 hover:elevation-1 hover:border-primary/20 transition-all duration-300 group"
               style={{ transitionDelay: `${i * 80}ms` }}
             >
               <div className="w-12 h-12 rounded-xl bg-primary/8 flex items-center justify-center mb-5 group-hover:bg-primary/15 transition-colors">

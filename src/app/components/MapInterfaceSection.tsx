@@ -1,6 +1,4 @@
-'use client';
-
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import Icon from '@/components/ui/AppIcon';
 
 const MAP_FEATURES = [
@@ -17,38 +15,20 @@ const MAP_FEATURES = [
   {
     icon: 'CameraIcon' as const,
     title: 'Crowdsourced Reporting',
-    body: 'Contribute to the data pool directly from the map view. Snap a photo of a station\'s pylon sign; our backend pipeline will automatically verify and update the network ledger.',
+    body: "Contribute to the data pool directly from the map view. Snap a photo of a station's pylon sign; our backend pipeline will automatically verify and update the network ledger.",
   },
 ];
 
 export default function MapInterfaceSection() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.querySelectorAll('.section-reveal').forEach((el, i) => {
-              setTimeout(() => el.classList.add('revealed'), i * 120);
-            });
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-    if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <section ref={sectionRef} className="py-16 lg:py-24 bg-white" id="features">
+    <section className="py-16 lg:py-24 bg-white" id="features">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Header */}
-        <div className="text-center mb-12 section-reveal">
+        <div className="text-center mb-12 section-reveal revealed">
           <h2 className="text-display-lg text-foreground mb-3">Mastering the Map Interface</h2>
           <p className="text-body-md text-muted-foreground max-w-xl mx-auto">
-            A comprehensive guide to navigating our high-fidelity map system for optimal fuel savings.
+            A comprehensive guide to navigating our high-fidelity map system for optimal fuel
+            savings.
           </p>
         </div>
 
@@ -57,7 +37,7 @@ export default function MapInterfaceSection() {
           {MAP_FEATURES.map((feature, i) => (
             <div
               key={feature.title}
-              className="section-reveal bg-white border border-border rounded-xl p-6 hover:elevation-1 hover:border-primary/20 transition-all duration-300 group"
+              className="section-reveal revealed bg-white border border-border rounded-xl p-6 hover:elevation-1 hover:border-primary/20 transition-all duration-300 group"
               style={{ transitionDelay: `${i * 80}ms` }}
             >
               {/* Icon */}
