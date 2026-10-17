@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Icon from '@/components/ui/AppIcon';
+import { APK_DOWNLOAD_PATH } from '@/lib/apk-download';
 
 export default function CTABanner() {
   return (
@@ -15,8 +16,8 @@ export default function CTABanner() {
             Join over 500,000 drivers using GasHub to Locate Gas Stations In Davao City and navigate price spikes.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <Link
-              href="#"
+            <a
+              href={APK_DOWNLOAD_PATH}
               className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md font-semibold text-body-sm hover:bg-primary-container transition-colors elevation-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-white min-h-[44px]"
             >
               <Icon
@@ -26,7 +27,7 @@ export default function CTABanner() {
                 className="text-primary-foreground"
               />
               Get the App
-            </Link>
+            </a>
           </div>
         </div>
       </div>
