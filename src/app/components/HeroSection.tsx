@@ -45,14 +45,6 @@ export default function HeroSection() {
                 />
                 Download App
               </a>
-
-              <Link
-                href="#"
-                className="inline-flex items-center gap-2 border border-foreground/20 text-foreground px-5 py-3 rounded-md font-semibold text-body-sm hover:bg-white/20 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[44px]"
-              >
-                <Icon name="PlayCircleIcon" size={16} className="text-foreground" />
-                Watch Demo
-              </Link>
             </div>
           </div>
 
