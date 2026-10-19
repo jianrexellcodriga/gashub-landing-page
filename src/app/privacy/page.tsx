@@ -111,7 +111,7 @@ export default function PrivacyPage() {
             <p>
               If you have any questions or concerns about this Privacy Policy, please contact us at{' '}
               <a href="mailto:privacy@gashub.app" className="text-green-400 hover:underline">
-                privacy@gashub.app
+                gashubsuport@gmail.com
               </a>
               .
             </p>
