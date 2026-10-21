@@ -12,7 +12,7 @@ const TEAM: TeamMember[] = [
   {
     name: 'Jian Rexell Codriga',
     role: 'Full Stack Developer/ UI/UX Designer',
-    alt: 'Jian Rexell Codriga, Full Stack Front-End Developer',
+    alt: 'Jian Rexell Codriga, Full Stack Developer/ UI/UX Designer',
     photo: {
       avif: '/assets/images/team 1.avif',
       webp: '/assets/images/team 1.webp',
